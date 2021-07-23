@@ -25,4 +25,5 @@ Bootloader:
 - load into memory
 - enable protected mode
 - prepare the runtime environment
+look into <https://wiki.osdev.org/Rolling_Your_Own_Bootloader>
 Makefile
