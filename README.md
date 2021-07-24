@@ -12,11 +12,14 @@ Only then we enter protected mode and setup runtime environment.
 
 
 ## Compile
-To compile simply do `make`.
+To compile simply use `make`.
+This creates a binary file which can the be used with QEMU using `-fda`.   
+To create an iso use `make bootloader.iso`. This creats an iso file to
+be used with QEMU using `-cdrom`.
 
 ## QEMU
 To run with **QEMU** + **GDB** do:
-`qemu-system-x86\_64 -cdrom bootloader.bin -boot a -s -S`
+`qemu-system-x86\_64 -cdrom bootloader.iso -boot a -s -S`
 [\(Other possible QEMU parameters)](https://manned.org/qemu-system-x86_64/129d1fa3)    
 Then open GDB and do:
 ```shell
