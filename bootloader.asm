@@ -85,6 +85,7 @@ pop es  ; after bios call
 
 ; check for int 13 extensions
 ; carry will be set if not present
+check_int_13_extensions:
 mov ah, 0x41
 push dx
 mov bx, 0x55aa
@@ -101,6 +102,7 @@ mov ds, ax
 mov si, disk_address_packet
 mov ah, 0x42
 int 0x13
+cmp ax, 0x0  ; check if read was successful (0)
 dec cx
 or cx, cx  ; cx==0
 jne read_drive
@@ -109,7 +111,7 @@ db 0x10  ; size of packet
 db 0x00  ; reserved (0)
 dw 0x0001 ; number of blocks to transfer
 dd 0x00008000  ; transfer buffer starting after the bootloader memory
-dq 0x0000000000000000
+dq 0x0000000000000000  ; check if this was source of error
 times 510-($-$$) db 0
 db 0x55
 db 0xaa
