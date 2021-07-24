@@ -1,10 +1,16 @@
+BIN = ./bin/
+
+
+all: bootloader.bin bootloader.iso
+
 bootloader.bin: bootloader.asm
-	nasm bootloader.asm -f bin -o bootloader.bin
+	nasm bootloader.asm -f bin -o $(BIN)bootloader.bin
+
 bootloader.iso: bootloader.bin
-	rm -rf cdcontents
-	mkdir cdcontents
-	cp bootloader.bin cdcontents
-	mkisofs -no-emul-boot -o bootloader.iso -V MarzellOS -b bootloader.bin cdcontents/
+	rm -rf $(BIN)isocontents
+	mkdir $(BIN)isocontents
+	cp $(BIN)bootloader.bin $(BIN)isocontents
+	mkisofs -no-emul-boot -o $(BIN)bootloader.iso -V MarzellOS -b bootloader.bin $(BIN)isocontents/
+
 clean:
-	rm -f bootloader.bin bootloader.iso
-	rm -rf cdcontents
+	rm -rf $(BIN)/*
