@@ -9,7 +9,7 @@
 test_a20:
 mov ax, 0x0fff  ; some high memory
 mov ss, ax  ; stack segment register
-mov sp, 0xffff  ; stack pointer
+mov sp, 0xfffe  ; stack pointer
 sub ax, ax  ; make ax = 0
 mov es, ax  ; extra segment register
 
@@ -70,6 +70,7 @@ push di  ; for after the bios call
 sub ax, ax
 mov es, ax
 mov di, ax
+push dx  ; save the drive number
 mov ah, 0x08   ; for int 13 to get drive parameters
                ; and then add 200h to the offset (512 bytes)
 int 0x13       ; call the bios function
@@ -78,10 +79,37 @@ je load_gdt    ; skip the stack push for the error (maybe change this later)
 push ax        ; for error codes check: http://www.ctyme.com/intr/rb-0606.htm#Table234
 
 load_gdt:  ; load global descriptor table
+pop dx  ; restore drive number
 pop di  ; restore theses registers
 pop es  ; after bios call
 
+; check for int 13 extensions
+; carry will be set if not present
+mov ah, 0x41
+push dx
+mov bx, 0x55aa
+int 0x13
+pop dx
 
+; test to see if int 13 ah=42 works
+; first we need to create the disk address packet:
+; see: http://www.ctyme.com/intr/rb-0708.htm#Table272
+mov cx, 5
+read_drive:
+sub ax, ax
+mov ds, ax
+mov si, disk_address_packet
+mov ah, 0x42
+int 0x13
+dec cx
+or cx, cx  ; cx==0
+jne read_drive
+disk_address_packet:
+db 0x10  ; size of packet
+db 0x00  ; reserved (0)
+dw 0x0001 ; number of blocks to transfer
+dd 0x00008000  ; transfer buffer starting after the bootloader memory
+dq 0x0000000000000000
 times 510-($-$$) db 0
 db 0x55
 db 0xaa
