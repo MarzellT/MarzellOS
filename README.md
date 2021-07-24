@@ -30,13 +30,15 @@ c
 ```
 
 ## Todo
-- linker script
+- linker script (not required yet)
 - Bootloader
   - load into memory
+      - use check for extensions
+      - check if read was successful
+      - make this a function to be called
+      - doesn't work for cd/dvd yet
   - enable protected mode
   - prepare the runtime environment
 look into <https://wiki.osdev.org/Rolling_Your_Own_Bootloader>
 
 ## Learnings
-Be careful with sp = 0. A push will result in overflow of ss so:
-`push ax -> ss - 1 = 0000 - 1 = fffc`. This can be a problem.
