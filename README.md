@@ -11,9 +11,13 @@ Then the bootloader needs to load the kernel image into the memory.
 Only then we enter protected mode and setup runtime environment.
 
 
+## Compile
+To compile simply run `make`.
+
 ## QEMU
-To run with QEMU + GDB do:
-`qemu-system-x86\_64 -fda bootloader -boot a -s -S`
+To run with **QEMU** + **GDB** do:
+`qemu-system-x86\_64 -cdrom bootloader.bin -boot a -s -S`
+[\(Other possible QEMU parameters)](https://manned.org/qemu-system-x86_64/129d1fa3)
 Then open GDB and do:
 `target remote localhost:1234`
 `set architecture i386:x86-64`
