@@ -35,3 +35,7 @@ Bootloader:
 - enable protected mode
 - prepare the runtime environment
 look into <https://wiki.osdev.org/Rolling_Your_Own_Bootloader>
+
+## Learnings
+Be careful with sp = 0. A push will result in overflow of ss so:
+`push ax -> ss - 1 = 0000 - 1 = fffc`. This can be a problem.
