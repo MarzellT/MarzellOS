@@ -32,6 +32,7 @@ c
 ## Todo
 - linker script (not required yet)
 - Bootloader
+  - check disk type (int 13, ah=15)
   - load into memory
       - use check for extensions
       - check if read was successful
