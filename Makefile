@@ -9,8 +9,8 @@ bootloader.bin: bootloader.asm
 bootloader.iso: bootloader.bin
 	rm -rf $(BIN)isocontents
 	mkdir $(BIN)isocontents
-	cp $(BIN)bootloader.bin $(BIN)isocontents
+	cp $(BIN)bootloader.bin README.md $(BIN)isocontents
 	mkisofs -no-emul-boot -o $(BIN)bootloader.iso -V MarzellOS -b bootloader.bin $(BIN)isocontents/
 
 clean:
-	rm -rf $(BIN)/*
+	rm -rf $(BIN)*
