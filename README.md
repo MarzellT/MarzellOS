@@ -19,10 +19,12 @@ To run with **QEMU** + **GDB** do:
 `qemu-system-x86\_64 -cdrom bootloader.bin -boot a -s -S`
 [\(Other possible QEMU parameters)](https://manned.org/qemu-system-x86_64/129d1fa3)    
 Then open GDB and do:
-```target remote localhost:1234
+```shell
+target remote localhost:1234
 set architecture i386:x86-64
 b *0x7c00
-c```
+c
+```
 
 ## Todo
 Bootloader:
