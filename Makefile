@@ -1,20 +1,20 @@
 BIN = ./bin/
-SRC = ./src
+SRC = ./src/
 
 
 all: bootloader.bin bootloader.iso
 
-bootloader.bin: bootloader.asm
+bootloader.bin:
 	nasm $(SRC)bootloader.asm -f bin -o $(BIN)bootloader.bin
 
-bootloader.iso: bootloader.bin
+bootloader.iso: bootloader.elf
 	rm -rf $(BIN)isocontents
 	mkdir $(BIN)isocontents
-	truncate -s 1474560 $(BIN)bootloader.bin
-	cp $(BIN)bootloader.bin README.md $(BIN)isocontents
-	mkisofs -o $(BIN)bootloader.iso -V MarzellOS -b bootloader.bin $(BIN)isocontents/
+	truncate -s 1474560 $(BIN)bootloader.img
+	cp $(BIN)bootloader.img README.md $(BIN)isocontents
+	mkisofs -o $(BIN)bootloader.iso -V MarzellOS -b bootloader.img $(BIN)isocontents/
 
-bootloader.o: bootloader.asm
+bootloader.o:
 	nasm -f elf64 -g -F dwarf $(SRC)bootloader.asm -o $(BIN)bootloader.o
 
 bootloader.elf: bootloader.o
