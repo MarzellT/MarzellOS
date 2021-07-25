@@ -21,15 +21,12 @@ be used with QEMU using `-cdrom`.
 
 ## QEMU
 To run with **QEMU** + **GDB** do:
-`qemu-system-x86\_64 -cdrom bin/bootloader.iso -boot a -s -S`
-[\(Other possible QEMU parameters)](https://manned.org/qemu-system-x86_64/129d1fa3)    
-Then open GDB and do:
 ```shell
-target remote localhost:1234
-set architecture i386:x86-64
-b *0x7c00
-c
+qemu-system-x86\_64 -cdrom bin/bootloader.iso -s -S & gdb bin/bootloader.elf \
+        -ex 'target remote localhost:1234' \
+        -ex 'set architecture i8086'
 ```
+[\(Other possible QEMU parameters)](https://manned.org/qemu-system-x86_64/129d1fa3)    
 
 ## Todo
 - linker script (not required yet)
