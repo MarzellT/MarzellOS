@@ -15,10 +15,10 @@ bootloader.iso: bootloader.elf
 	mkisofs -o $(BIN)bootloader.iso -V MarzellOS -b bootloader.img $(BIN)isocontents/
 
 bootloader.o:
-	nasm -f elf64 -g -F dwarf $(SRC)bootloader.asm -o $(BIN)bootloader.o
+	nasm -f elf32 -g3 -F dwarf $(SRC)bootloader.asm -o $(BIN)bootloader.o
 
 bootloader.elf: bootloader.o
-	ld -Ttext=0x7c00 -melf_x86_64 $(BIN)bootloader.o -o $(BIN)bootloader.elf
+	ld -Ttext=0x7c00 -melf_i386 $(BIN)bootloader.o -o $(BIN)bootloader.elf
 	objcopy -O binary $(BIN)bootloader.elf $(BIN)bootloader.img
 
 clean:
