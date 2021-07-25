@@ -1,15 +1,17 @@
-; booatloader.asm
+; bootloader.asm
 
 [BITS 16]
-[ORG 0x7c00]
 
 ; as the first part of the bootloader
 ; we want to disable the A20 signal
 ; see: https://www.win.tue.nl/~aeb/linux/kbd/A20.html
-test_a20:
-mov ax, 0x0fff  ; some high memory
+main:
+cli
+mov ax, 0x7fff  ; some high available memory
+                ; check https://wiki.osdev.org/Memory_Map_(x86)
 mov ss, ax  ; stack segment register
-mov sp, 0xfffe  ; stack pointer
+mov sp, 0x0  ; stack pointer
+test_a20:
 sub ax, ax  ; make ax = 0
 mov es, ax  ; extra segment register
 
@@ -19,10 +21,13 @@ mov ds, ax  ; data segment register
 mov di, 0x0500  ; addresses to look at
 mov si, 0x0510
 
-mov byte [es:di], 0x00  ; now move dummy values to test against
-mov byte [ds:si], 0xff
+mov al, 0x00
+mov [es:di], al  ; now move dummy values to test against
+mov al, 0xff
+mov [ds:si], al
 
-cmp byte [es:di], 0xff    ; check if a20 is enabled
+mov al, [es:di]
+cmp al, 0xff    ; check if a20 is enabled
                           ; if enabled zf is 0
 jne get_drive_parameters  ; because a20 is set we continue with the bootloading
 
@@ -65,52 +70,94 @@ ret
 ; this will be stored in registers for the register pls look at:
 ; http://www.ctyme.com/intr/rb-0621.htm
 get_drive_parameters:
-push es  ; save these registers
-push di  ; for after the bios call
+push dx  ; save drive number to stack
 sub ax, ax
 mov es, ax
 mov di, ax
-push dx  ; save the drive number
 mov ah, 0x08   ; for int 13 to get drive parameters
-               ; and then add 200h to the offset (512 bytes)
 int 0x13       ; call the bios function
-cmp ah, 0x00   ; is zero on success
-je load_gdt    ; skip the stack push for the error (maybe change this later)
-push ax        ; for error codes check: http://www.ctyme.com/intr/rb-0606.htm#Table234
-
-load_gdt:  ; load global descriptor table
+; check parameters: http://www.ctyme.com/intr/rb-0621.htm#Table242
+cmp ah, 0x00   ; is zero on success (currently not used)
+mov [test_a20], cx ; save parameters into memory
+mov [test_a20+2], dx
+; for error codes check: http://www.ctyme.com/intr/rb-0606.htm#Table234
 pop dx  ; restore drive number
-pop di  ; restore theses registers
-pop es  ; after bios call
+cmp dx, 0x80   ; check if we use a hard drive
+jl read_floppy_setup  ; jump to read the floppy
 
-; check for int 13 extensions
+
+; check for int 13 extensions (only needed for hard drives)
 ; carry will be set if not present
 check_int_13_extensions:
 mov ah, 0x41
-push dx
+push dx  ; save drive number
 mov bx, 0x55aa
 int 0x13
-pop dx
+pop dx  ; restore drive number
 
-; test to see if int 13 ah=42 works
+; read from hard drive
 ; first we need to create the disk address packet:
 ; see: http://www.ctyme.com/intr/rb-0708.htm#Table272
-mov cx, 5
 read_drive:
 sub ax, ax
 mov ds, ax
 mov si, disk_address_packet
 mov ah, 0x42
+push dx  ; save drive number
 int 0x13
+pop dx  ; restore drive number
 cmp ax, 0x0  ; check if read was successful (0)
-dec cx
-or cx, cx  ; cx==0
-jne read_drive
+je load_gdt
+
+read_floppy_setup:
+pop dx
+mov bp, 5  ; retry at least 5 times
+mov cx, 0  ; !!! need to preserve these for int call
+mov dh, 0
+sub ax, ax
+mov es, ax
+mov bx, 0x7e00
+read_floppy:
+cmp dh, [test_a20+3] ; compare max head number
+jg load_gdt
+mov ax, [test_a20]  ; compare max sector number
+and al, 0x1f  ; only look at the lowest 5 bits
+push cx       ; save original value
+and cl, 0x1f  ; only look at the lowest 5 bits
+cmp cl, al    ; check if reached maximum sector number
+pop cx        ; restore original cx to compare max cylinder number (10 bit)
+jg load_gdt   ; if reached jump
+push cx
+rol cx, 0x8   ; swap high and low part
+shr ch, 0x6   ; and then push out the part we don't want
+mov ax, [test_a20]  ; now do the same with ax
+pop ax        ; restore original cx
+rol ax, 0x8   ; swap high and low part
+shr ah, 0x6   ; and then push out the part we don't want
+cmp cx, ax
+pop cx
+jg load_gdt
+mov ah, 0x02
+push dx
+int 0x13
+pop dx
+inc ch       ; increment the function call parameters
+inc cl
+add cl, 0x8
+dec bp       ; decrease max retry counter
+or bp, bp  ; bp==0
+je load_gdt
+or ah, ah
+je load_gdt
+jmp read_floppy
+
+load_gdt:  ; load global descriptor table
+
 disk_address_packet:
 db 0x10  ; size of packet
 db 0x00  ; reserved (0)
 dw 0x0001 ; number of blocks to transfer
-dd 0x00008000  ; transfer buffer starting after the bootloader memory
+dd 0x00007e00  ; transfer buffer starting after the bootloader memory
 dq 0x0000000000000000  ; check if this was source of error
 times 510-($-$$) db 0
 db 0x55

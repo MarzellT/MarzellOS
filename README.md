@@ -5,6 +5,8 @@ x86\_64 operating system for learning purposes.
 ## Info
 Right now the 'Bootloader' only tries to enable A20.
 On the hard disk we want to do something different.
+When compiling with `make` we create an iso image emulating
+a 1440 kB floppy. This enables to use int 13h bios functions.
 We want to create a MBR on the hard disk and do MBR bootstrap:
 <https://wiki.osdev.org/MBR_(x86)>
 Then the bootloader needs to load the kernel image into the memory.
@@ -19,7 +21,7 @@ be used with QEMU using `-cdrom`.
 
 ## QEMU
 To run with **QEMU** + **GDB** do:
-`qemu-system-x86\_64 -cdrom bootloader.iso -boot a -s -S`
+`qemu-system-x86\_64 -cdrom bin/bootloader.iso -boot a -s -S`
 [\(Other possible QEMU parameters)](https://manned.org/qemu-system-x86_64/129d1fa3)    
 Then open GDB and do:
 ```shell
@@ -43,3 +45,6 @@ c
 look into <https://wiki.osdev.org/Rolling_Your_Own_Bootloader>
 
 ## Learnings
+There are differences in bootable .iso files. A problem was that I
+using an El Torito image instead of a floppy emulated image.
+That's the reasong why the int 13h calls didn't work.
