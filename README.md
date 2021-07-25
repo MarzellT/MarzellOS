@@ -29,6 +29,7 @@ qemu-system-x86\_64 -cdrom bin/bootloader.iso -s -S & gdb bin/bootloader.elf \
 [\(Other possible QEMU parameters)](https://manned.org/qemu-system-x86_64/129d1fa3)    
 
 ## Todo
+- debug read_floppy
 - linker script (not required yet)
 - Bootloader
   - check disk type (int 13, ah=15)
@@ -36,7 +37,6 @@ qemu-system-x86\_64 -cdrom bin/bootloader.iso -s -S & gdb bin/bootloader.elf \
       - use check for extensions
       - check if read was successful
       - make this a function to be called
-      - doesn't work for cd/dvd yet
   - enable protected mode
   - prepare the runtime environment
 look into <https://wiki.osdev.org/Rolling_Your_Own_Bootloader>
