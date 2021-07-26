@@ -7,12 +7,18 @@ all: bootloader.bin bootloader.iso
 bootloader.bin:
 	nasm $(SRC)bootloader.asm -f bin -o $(BIN)bootloader.bin
 
-bootloader.iso: bootloader.elf
+floppy_bootloader.iso: bootloader.elf
 	rm -rf $(BIN)isocontents
 	mkdir $(BIN)isocontents
 	truncate -s 1474560 $(BIN)bootloader.img
-	cp $(BIN)bootloader.img README.md $(BIN)isocontents
+	cp $(BIN)bootloader.img $(BIN)isocontents
 	mkisofs -o $(BIN)bootloader.iso -V MarzellOS -b bootloader.img $(BIN)isocontents/
+
+hd_bootloader.iso: bootloader.elf
+	rm -rf $(BIN)isocontents
+	mkdir $(BIN)isocontents
+	cp $(BIN)bootloader.img $(BIN)isocontents
+	mkisofs -hard-disk-boot -o $(BIN)bootloader.iso -V MarzellOS -b bootloader.img $(BIN)isocontents/
 
 bootloader.o:
 	nasm -f elf32 -g3 -F dwarf $(SRC)bootloader.asm -o $(BIN)bootloader.o
