@@ -84,6 +84,7 @@ mov [test_a20+2], dx
 pop dx  ; restore drive number
 cmp dx, 0x80   ; check if we use a hard drive
 jl read_floppy_setup  ; jump to read the floppy
+; else we assume a hard drive
 
 
 ; check for int 13 extensions (only needed for hard drives)
@@ -110,40 +111,21 @@ cmp ax, 0x0  ; check if read was successful (0)
 je load_gdt
 
 read_floppy_setup:
-pop dx
-mov bp, 5  ; retry at least 5 times
-mov cx, 0  ; !!! need to preserve these for int call
-mov dh, 0
-sub ax, ax
-mov es, ax
-mov bx, 0x7e00
+mov bp, 4   ; retry at least 5 times
 read_floppy:
-cmp dh, [test_a20+3] ; compare max head number
-jg load_gdt
-mov ax, [test_a20]  ; compare max sector number
-and al, 0x1f  ; only look at the lowest 5 bits
-push cx       ; save original value
-and cl, 0x1f  ; only look at the lowest 5 bits
-cmp cl, al    ; check if reached maximum sector number
-pop cx        ; restore original cx to compare max cylinder number (10 bit)
-jg load_gdt   ; if reached jump
-push cx
-rol cx, 0x8   ; swap high and low part
-shr ch, 0x6   ; and then push out the part we don't want
-mov ax, [test_a20]  ; now do the same with ax
-pop ax        ; restore original cx
-rol ax, 0x8   ; swap high and low part
-shr ah, 0x6   ; and then push out the part we don't want
-cmp cx, ax
-pop cx
-jg load_gdt
+sub dh, dh  ; head number 0
+sub ax, ax
+mov es, ax      ; buffer to place data in
+mov bx, 0x7e00  ; we want to start right after the bootloader
+mov cx, [test_a20]  ; restore values from get drive parameters call
+and cl, 0x3f        ; we only take bytes 0-5 and thereby
+sub ch, ch          ; make cylinder number to 0
 mov ah, 0x02
-push dx
+mov al, cl          ; read max sector count
+mov cl, 0x01        ; start from sector 1
+push dx  ; save the drive number
 int 0x13
-pop dx
-inc ch       ; increment the function call parameters
-inc cl
-add cl, 0x8
+pop dx   ; restore the drive number
 dec bp       ; decrease max retry counter
 or bp, bp  ; bp==0
 je load_gdt
