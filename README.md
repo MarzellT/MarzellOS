@@ -29,14 +29,14 @@ qemu-system-x86\_64 -cdrom bin/bootloader.iso -s -S & gdb bin/bootloader.elf \
 [\(Other possible QEMU parameters)](https://manned.org/qemu-system-x86_64/129d1fa3)    
 
 ## Todo
-- debug read_floppy
+- create mbr partition table in bootloader
+- debug int 13, ah=42
 - linker script (not required yet)
 - Bootloader
-  - check disk type (int 13, ah=15)
   - load into memory
       - use check for extensions
       - check if read was successful
-      - make this a function to be called
+      - make this a function to be called (maybe)
   - enable protected mode
   - prepare the runtime environment
 look into <https://wiki.osdev.org/Rolling_Your_Own_Bootloader>
@@ -44,4 +44,4 @@ look into <https://wiki.osdev.org/Rolling_Your_Own_Bootloader>
 ## Learnings
 There are differences in bootable .iso files. A problem was that I
 using an El Torito image instead of a floppy emulated image.
-That's the reasong why the int 13h calls didn't work.
+That's the reason the int 13h calls didn't work.
