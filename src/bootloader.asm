@@ -1,4 +1,5 @@
 ; bootloader.asm
+; containing an MBR partition table
 
 [BITS 16]
 
@@ -141,6 +142,30 @@ db 0x00  ; reserved (0)
 dw 0x0001 ; number of blocks to transfer
 dd 0x00007e00  ; transfer buffer starting after the bootloader memory
 dq 0x0000000000000000  ; check if this was source of error
-times 510-($-$$) db 0
-db 0x55
+
+times 440-($-$$) db 0
+; mbr partition table (check https://wiki.osdev.org/MBR)
+mbr_unique_id:
+dd 0x1337
+mbr_reserved:
+dw 0x0
+mbr_first_pt_entry:
+db 0x80
+mbr_first_pt_first_chs:
+db 0x0
+db 0x1
+db 0x0
+mbr_first_pt_type:  ; check https://en.wikipedia.org/wiki/Partition_type
+;db 0x0c  ; fat32 with lba
+db 0x01
+mbr_first_pt_last_chs:
+db 0x0
+db 0x3f  ; last sector is 63 in decimal
+db 0x0
+mbr_first_pt_first_lba:
+dd 0x0
+mbr_first_pt_lba_number_sectors:
+dd 0x3f  ; 63 sectors
+times 16*3 db 0x0  ; fill the remaining 3 boot sectors with 0s
+db 0x55  ; add the boot signature
 db 0xaa
