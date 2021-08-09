@@ -29,7 +29,14 @@ qemu-system-x86\_64 -cdrom bin/bootloader.iso -s -S & gdb bin/bootloader.elf \
 [\(Other possible QEMU parameters)](https://manned.org/qemu-system-x86_64/129d1fa3)    
 
 ## Todo
-- create mbr partition table in bootloader
+### MBR loader
+- create a special mbr loader that will be used to load the actual
+bootloader into the memory so we don't need to worry about the size
+and we can do all the required stuff
+- the mbr loader needs to load our bootloader into memory
+- we need to check how to put everything onto a file (hard drive)
+so that we can chs address it
+### bootloader
 - debug int 13, ah=42
 - linker script (not required yet)
 - Bootloader
