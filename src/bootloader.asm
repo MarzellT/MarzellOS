@@ -150,20 +150,21 @@ dd 0x1337
 mbr_reserved:
 dw 0x0
 mbr_first_pt_entry:
-db 0x80
-mbr_first_pt_first_chs:
-db 0x0
-db 0x1
-db 0x0
+db 0x80  ; set 7th bit to set it bootable (active)
+mbr_first_pt_first_chs:  ; we make the first partition start at 0/1/1 chs
+                         ; compare to https://www.thomas-krenn.com/en/wiki/CHS_and_LBA_Hard_Disk_Addresses
+db 0x1  ; head 7-0
+db 0x1  ; cylinder 9-8, sector 5-0
+db 0x0  ; cylinder 7-0
 mbr_first_pt_type:  ; check https://en.wikipedia.org/wiki/Partition_type
 ;db 0x0c  ; fat32 with lba
 db 0x01
 mbr_first_pt_last_chs:
-db 0x0
-db 0x3f  ; last sector is 63 in decimal
+db 0x1
+db 0x2  ; last sector is 63 in decimal
 db 0x0
 mbr_first_pt_first_lba:
-dd 0x0
+dd 0x3f
 mbr_first_pt_lba_number_sectors:
 dd 0x3f  ; 63 sectors
 times 16*3 db 0x0  ; fill the remaining 3 boot sectors with 0s
