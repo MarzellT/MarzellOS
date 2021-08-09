@@ -15,7 +15,7 @@ floppy_bootloader.iso: bootloader.elf
 	cp $(BIN)bootloader.img $(BIN)isocontents
 	mkisofs -o $(BIN)bootloader.iso -V MarzellOS -b bootloader.img $(BIN)isocontents/
 
-hd_bootloader.iso: bootloader.elf
+hd_bootloader.iso: bootloader.img
 	# here i tried to create a loop device so that we can use the os to write to the filesystem
 	# but we dont actually need it as of now
 	#	dd if=/dev/zero of=$(BIN)diskimage.dd bs=1048576 count=$(PARTITION_SIZE)
@@ -34,6 +34,8 @@ bootloader.o:
 
 bootloader.elf: bootloader.o
 	ld -Ttext=0x7c00 -melf_i386 $(BIN)bootloader.o -o $(BIN)bootloader.elf
+
+bootloader.img: bootloader.elf
 	objcopy -O binary $(BIN)bootloader.elf $(BIN)bootloader.img
 
 clean:
