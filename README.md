@@ -4,10 +4,10 @@ x86\_64 operating system for learning purposes.
 
 ## Info
 Right now the 'Bootloader' only tries to enable A20.
-On the hard disk we want to do something different.
+On the (emulated) hard disk we want to do something different.
 When compiling with `make` we create an iso image emulating
 a 1440 kB floppy. This enables to use int 13h bios functions.
-We want to create a MBR on the hard disk and do MBR bootstrap:
+We want to create an MBR on the hard disk and do MBR bootstrap:
 <https://wiki.osdev.org/MBR_(x86)>
 Then the bootloader needs to load the kernel image into the memory.
 Only then we enter protected mode and setup runtime environment.
@@ -36,6 +36,7 @@ and we can do all the required stuff
 - the mbr loader needs to load our bootloader into memory
 - we need to check how to put everything onto a file (hard drive)
 so that we can chs address it
+- maybe add chain loading
 ### bootloader
 - debug int 13, ah=42
 - linker script (not required yet)

@@ -7,8 +7,9 @@ all: bootloader.bin hd_bootloader.iso
 
 bootloader.bin:
 	nasm $(SRC)bootloader.asm -f bin -o $(BIN)bootloader.bin
+	nasm $(SRC)mbr_loader.asm -f bin -o $(BIN)mbr_loader.bin
 
-floppy_bootloader.iso: bootloader.elf
+floppy_bootloader.iso: bootloader.img
 	rm -rf $(BIN)isocontents
 	mkdir $(BIN)isocontents
 	truncate -s 1474560 $(BIN)bootloader.img
@@ -26,17 +27,20 @@ hd_bootloader.iso: bootloader.img
 	#	losetup -d $(DEVNAME)
 	rm -rf $(BIN)isocontents
 	mkdir $(BIN)isocontents
-	cp $(BIN)bootloader.img $(BIN)isocontents
-	mkisofs -hard-disk-boot -o $(BIN)bootloader.iso -V MarzellOS -b bootloader.img $(BIN)isocontents/
+	cp $(BIN)*.img $(BIN)isocontents
+	mkisofs -hard-disk-boot -o $(BIN)bootloader.iso -V MarzellOS -b mbr_loader.img $(BIN)isocontents/
 
 bootloader.o:
 	nasm -f elf32 -g3 -F dwarf $(SRC)bootloader.asm -o $(BIN)bootloader.o
+	nasm -f elf32 -g3 -F dwarf $(SRC)mbr_loader.asm -o $(BIN)mbr_loader.o
 
 bootloader.elf: bootloader.o
 	ld -Ttext=0x7c00 -melf_i386 $(BIN)bootloader.o -o $(BIN)bootloader.elf
+	ld -Ttext=0x7c00 -melf_i386 $(BIN)mbr_loader.o -o $(BIN)mbr_loader.elf
 
 bootloader.img: bootloader.elf
 	objcopy -O binary $(BIN)bootloader.elf $(BIN)bootloader.img
+	objcopy -O binary $(BIN)mbr_loader.elf $(BIN)mbr_loader.img
 
 clean:
 	rm -rf $(BIN)*
