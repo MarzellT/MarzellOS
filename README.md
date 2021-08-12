@@ -59,3 +59,9 @@ That's the reason the int 13h calls didn't work.
 Only the `bx` register can be used as indexing register in real
 mode check <https://stackoverflow.com/questions/2809141/invalid-effective-address-calculation>
 and also <https://wiki.osdev.org/X86-64_Instruction_Encoding#SIB>.
+
+`mov [reg16], something` will always(?) translate to `[mov] [ds:reg16], something`.
+
+Debugging 16 Bit real mode with gdb: <https://stackoverflow.com/questions/32955887/how-to-disassemble-16-bit-x86-boot-sector-code-in-gdb-with-x-i-pc-it-gets-tr>
+
+Hard drive emulated cdrom boot can't use `int 0x13` extensions.
