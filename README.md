@@ -22,9 +22,11 @@ be used with QEMU using `-cdrom`.
 ## QEMU
 To run with **QEMU** + **GDB** do:
 ```shell
-qemu-system-x86\_64 -cdrom bin/bootloader.iso -s -S & gdb bin/bootloader.elf \
-        -ex 'target remote localhost:1234' \
-        -ex 'set architecture i8086'
+qemu-system-i386 -cdrom bin/bootloader.iso -s -S & gdb bin/mbr_loader.elf
+-ex 'target remote localhost:1234'
+-ex 'set architecture i8086'
+-ex 'set tdesc filename src/target.xml'
+-ex 'b *0x7c00'
 ```
 [\(Other possible QEMU parameters)](https://manned.org/qemu-system-x86_64/129d1fa3)    
 
@@ -53,3 +55,7 @@ look into <https://wiki.osdev.org/Rolling_Your_Own_Bootloader>
 There are differences in bootable .iso files. A problem was that I
 using an El Torito image instead of a floppy emulated image.
 That's the reason the int 13h calls didn't work.
+    
+Only the `bx` register can be used as indexing register in real
+mode check <https://stackoverflow.com/questions/2809141/invalid-effective-address-calculation>
+and also <https://wiki.osdev.org/X86-64_Instruction_Encoding#SIB>.
