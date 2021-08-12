@@ -36,7 +36,7 @@ bootloader.o:
 
 bootloader.elf: bootloader.o
 	ld -Ttext=0x7c00 -melf_i386 $(BIN)bootloader.o -o $(BIN)bootloader.elf
-	ld -Ttext=0x7c00 -melf_i386 $(BIN)mbr_loader.o -o $(BIN)mbr_loader.elf
+	ld -T $(SRC)mbr_loader.ld -melf_i386 $(BIN)mbr_loader.o -o $(BIN)mbr_loader.elf
 
 bootloader.img: bootloader.elf
 	objcopy -O binary $(BIN)bootloader.elf $(BIN)bootloader.img
