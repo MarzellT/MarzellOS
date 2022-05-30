@@ -22,15 +22,33 @@ be used with QEMU using `-cdrom`.
 ## QEMU
 To run with **QEMU** + **GDB** do:
 ```shell
-qemu-system-i386 -cdrom bin/bootloader.iso -s -S & gdb bin/mbr_loader.elf
--ex 'target remote localhost:1234'
--ex 'set architecture i8086'
--ex 'set tdesc filename src/target.xml'
+qemu-system-i386 -cdrom bin/bootloader.iso -s -S & gdb bin/mbr_loader.elf \
+-ex 'target remote localhost:1234' \
+-ex 'set architecture i8086' \
+-ex 'set tdesc filename src/target.xml' \
+-ex 'b *0x7c00'
+```
+or
+```shell
+emu-system-i386 -cdrom bin/cd_loader.iso -s -S -device qemu-xhci & gdb bin/cd_loader.elf \
+-ex 'target remote localhost:1234' \
+-ex 'set architecture i8086' \
+-ex 'set tdesc filename src/target.xml' \
 -ex 'b *0x7c00'
 ```
 [\(Other possible QEMU parameters)](https://manned.org/qemu-system-x86_64/129d1fa3)    
 
+## Current Development Status
+- `bootloader.asm` sets a20 and will be used to load the actual kernel.
+- `mbr_load.asm` loads `bootloader.asm` into memory. It relocates itself to 0x500.
+- `cd_loader.asm` is meant to allow devices that can't boot from USB to boot from CD and boot a USB.
+
 ## Todo
+### CD USB MBR loader
+- make a cd to load HDD MBR formated USB sticks this way the bootloader
+can be compatible with any pc that can boot from floppy drives but not
+USB sticks
+- should check all USB drives for magic boot bits
 ### MBR loader
 - create a special mbr loader that will be used to load the actual
 bootloader into the memory so we don't need to worry about the size
@@ -65,3 +83,6 @@ and also <https://wiki.osdev.org/X86-64_Instruction_Encoding#SIB>.
 Debugging 16 Bit real mode with gdb: <https://stackoverflow.com/questions/32955887/how-to-disassemble-16-bit-x86-boot-sector-code-in-gdb-with-x-i-pc-it-gets-tr>
 
 Hard drive emulated cdrom boot can't use `int 0x13` extensions.
+
+xor reg, reg  is the best way to 0 a register.
+On 64 bit machines do xor r32, r32 as it saves a byte and will clear the upper 32 bit.

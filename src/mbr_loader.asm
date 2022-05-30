@@ -81,7 +81,7 @@ pop dx  ; restore the drive number for the next loader
 jmp 0x7c00
 
 
-no_valid_entry_found:
+no_valid_entry_found:  ; hang
 jmp no_valid_entry_found
 
 
@@ -90,9 +90,9 @@ db 0x10  ; size of packet
 db 0x0   ; reserved (0)
 dap_number_of_sectors:
 dw 0x1  ; rewrite this
-dd 0x00007e00  ; write to this address
+dd 0x00007c00  ; write to this address
 dap_start_sector:
-dq 0x0  ; rewrite this
+dq 0x1  ; rewrite this
 
 
 
