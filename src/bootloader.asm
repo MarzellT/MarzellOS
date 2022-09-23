@@ -3,8 +3,8 @@
 
 [BITS 16]
 
-; as the first part of the bootloader
 ; we want to disable the A20 signal
+; as the first part of the bootloader
 ; see: https://www.win.tue.nl/~aeb/linux/kbd/A20.html
 main:
 cli
@@ -12,6 +12,7 @@ mov ax, 0x7fff  ; some high available memory
                 ; check https://wiki.osdev.org/Memory_Map_(x86)
 mov ss, ax  ; stack segment register
 mov sp, 0x0  ; stack pointer
+
 test_a20:
 sub ax, ax  ; make ax = 0
 mov es, ax  ; extra segment register
@@ -47,6 +48,7 @@ out 0x92, al
 jmp test_a20  ; check if a20 was enabled
 
 
+; TODO: check if this is actually reachable and not an infinite loop
 keyboard_controller_a20:  ; no then try keyboard controller
 ; first we try the ps/2 controller
 mov al, 0xd1   ; write next byte to controller output port

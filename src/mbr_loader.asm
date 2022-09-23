@@ -36,12 +36,12 @@ mov ax, 0x50   ; relocate to 0x500
 mov es, ax
 sub di, di
 rep movsw
-jmp (0x500+check_partitions-0x7c00)
+jmp (0x500+check_partitions-0x7c00)  ; jump to check_partitions after relocate
 
 section .after_relocate
 check_partitions:
 ; now we will load the first sector of the first active partition to 0x7c00
-mov di, 446  ; offset to the first entry
+mov di, 0x01be  ; offset to the first entry
 mov cx, -0x4
 check_partitions_loop:
 mov al, [es:di]

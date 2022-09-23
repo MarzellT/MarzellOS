@@ -44,20 +44,36 @@ emu-system-i386 -cdrom bin/cd_loader.iso -s -S -device qemu-xhci & gdb bin/cd_lo
 - `cd_loader.asm` is meant to allow devices that can't boot from USB to boot from CD and boot a USB.
 
 ## Todo
-### CD USB MBR loader
+### Bootstrap
+#### [Check int 15h AX=E820h](http://www.uruk.org/orig-grub/mem64mb.html) to do memory detection
+#### Boot loading
+- if booted from hard drive load kernel stuff
+- if booted from cd / usb / whatever show installer
+
+---
+
+### CD USB MBR loader  (!forget this for now!)
+#### We will later have to test if this actually needed on the real hardware
 - make a cd to load HDD MBR formated USB sticks this way the bootloader
 can be compatible with any pc that can boot from floppy drives but not
 USB sticks
 - should check all USB drives for magic boot bits
+
+---
+ 
 ### MBR loader
 - create a special mbr loader that will be used to load the actual
 bootloader into the memory so we don't need to worry about the size
 and we can do all the required stuff
 - the mbr loader needs to load our bootloader into memory
 - we need to check how to put everything onto a file (hard drive)
-so that we can chs address it
-- maybe add chain loading
-### bootloader
+so that we can chs address it *- what did I mean by this ?*
+- maybe add chain loading *- I forgot why this should be necessary here?*
+
+---
+
+### Bootloader
+- this one should be saved onto the hard disk and be able to boot itself
 - debug int 13, ah=42
 - linker script (not required yet)
 - Bootloader
