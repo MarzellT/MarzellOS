@@ -102,3 +102,5 @@ Hard drive emulated cdrom boot can't use `int 0x13` extensions.
 
 xor reg, reg  is the best way to 0 a register.
 On 64 bit machines do xor r32, r32 as it saves a byte and will clear the upper 32 bit.
+
+Detecting Memory relies heavily on standardized bios. For older systems it can be super tricky. (https://wiki.osdev.org/Detecting_Memory_(x86))
