@@ -65,15 +65,16 @@ USB sticks
 - create a special mbr loader that will be used to load the actual
 bootloader into the memory so we don't need to worry about the size
 and we can do all the required stuff
-- the mbr loader needs to load our bootloader into memory
-- we need to check how to put everything onto a file (hard drive)
+- the mbr loader needs to load our bootloader into memory (only first 512 bytes)
+- we need to check how to put everything onto the hard drive
 so that we can chs address it *- what did I mean by this ?*
 - maybe add chain loading *- I forgot why this should be necessary here?*
 
 ---
 
 ### Bootloader
-- this one should be saved onto the hard disk and be able to boot itself
+- this one should be saved onto the hard disk together with the mbr loader
+and be able to boot itself
 - debug int 13, ah=42
 - linker script (not required yet)
 - Bootloader
@@ -81,6 +82,7 @@ so that we can chs address it *- what did I mean by this ?*
       - use check for extensions
       - check if read was successful
       - make this a function to be called (maybe)
+  - do memory detection
   - enable protected mode
   - prepare the runtime environment
 look into <https://wiki.osdev.org/Rolling_Your_Own_Bootloader>
