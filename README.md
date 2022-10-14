@@ -1,6 +1,8 @@
 # MarzellOS
 
-x86\_64 operating system for learning purposes.
+**x86\_64 bootloader and operating system for learning purposes.**
+
+---
 
 ## Info
 Right now the 'Bootloader' only tries to enable A20.
@@ -12,6 +14,7 @@ We want to create an MBR on the hard disk and do MBR bootstrap:
 Then the bootloader needs to load the kernel image into the memory.
 Only then we enter protected mode and setup runtime environment.
 
+---
 
 ## Compile
 To compile simply use `make`.
@@ -25,7 +28,7 @@ To run with **QEMU** + **GDB** do:
 qemu-system-i386 -cdrom bin/bootloader.iso -s -S & gdb bin/mbr_loader.elf \
 -ex 'target remote localhost:1234' \
 -ex 'set architecture i8086' \
--ex 'set tdesc filename src/target.xml' \
+-ex 'set tdesc filename src/tools/qemu/target.xml' \
 -ex 'b *0x7c00'
 ```
 or
@@ -33,7 +36,7 @@ or
 emu-system-i386 -cdrom bin/cd_loader.iso -s -S -device qemu-xhci & gdb bin/cd_loader.elf \
 -ex 'target remote localhost:1234' \
 -ex 'set architecture i8086' \
--ex 'set tdesc filename src/target.xml' \
+-ex 'set tdesc filename src/tools/qemu/target.xml' \
 -ex 'b *0x7c00'
 ```
 [\(Other possible QEMU parameters)](https://manned.org/qemu-system-x86_64/129d1fa3)    
@@ -73,19 +76,45 @@ so that we can chs address it *- what did I mean by this ?*
 ---
 
 ### Bootloader
-- this one should be saved onto the hard disk together with the mbr loader
+This one should be saved onto the hard disk together with the mbr loader
 and be able to boot itself
+
+#### Purpose
+- load yourself into memory
+  - use check for extensions (hdd read bios interrupt)
+  - check if read was successful
+- enable protected mode
+- detect memory and hardware
+- prepare the runtime environment
+  look into <https://wiki.osdev.org/Rolling_Your_Own_Bootloader>
+
+#### System Discovery
+ 
+##### Memory Detection
+###### Low Memory
+
+##### Extended Bios Data Area (EBDA)
+1. [(ebda)](https://uefi.org/sites/default/files/resources/ACPI_Spec_6_4_Jan22.pdf#subsubsection.5.2.5.1)
+   - location is stored at address 0x40e
+2. Read ACPI tables
+   - [detect Root System Description Pointer](https://wiki.osdev.org/RSDP#Detecting_the_RSDP)
+    which points to the Root System Description Table and potentionally eXtended System Description Table (XSDT)
+   - (check on [ACPICA](https://wiki.osdev.org/ACPICA))
+ 
+##### System Management BIOS (SMBIOS)
+https://wiki.osdev.org/SMBIOS
+
+1. Locate SMBIOS Entry Point Table
+   1. Search through addresses 0xF0000 - 0xFFFFF on 16 bit boundaries for the String "\_SM\_"
+   2. Check checksum
+2. Parse the table
+ 
+#### General TODOs
 - debug int 13, ah=42
 - linker script (not required yet)
-- Bootloader
-  - load into memory
-      - use check for extensions
-      - check if read was successful
-      - make this a function to be called (maybe)
-  - do memory detection
-  - enable protected mode
-  - prepare the runtime environment
-look into <https://wiki.osdev.org/Rolling_Your_Own_Bootloader>
+- make check for extensions a function to be called (maybe)
+
+---
 
 ## Learnings
 There are differences in bootable .iso files. A problem was that I
