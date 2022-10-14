@@ -1,5 +1,6 @@
 BIN = ./bin/
 SRC = ./src/
+BOOTLOADER_SRC = $(SRC)bootloader/
 PARTITION_SIZE = 1  # 1 MB
 
 # Compiler Options
@@ -16,11 +17,11 @@ cd_loader:
 	make floppy_cd_loader.iso
 
 cd_loader.bin:
-	nasm $(SRC)cd_loader.asm -f bin -o $(BIN)cd_loader.bin
+	nasm $(BOOTLOADER_SRC)cd_loader.asm -f bin -o $(BIN)cd_loader.bin
 
 bootloader.bin:
-	nasm $(SRC)bootloader.asm -f bin -o $(BIN)bootloader.bin
-	nasm $(SRC)mbr_loader.asm -f bin -o $(BIN)mbr_loader.bin
+	nasm $(BOOTLOADER_SRC)bootloader.asm -f bin -o $(BIN)bootloader.bin
+	nasm $(BOOTLOADER_SRC)mbr_loader.asm -f bin -o $(BIN)mbr_loader.bin
 
 floppy_cd_loader.iso: cd_loader.img
 	rm -rf $(BIN)isocontents
@@ -44,15 +45,15 @@ hd_bootloader.iso: bootloader.img
 	mkisofs -hard-disk-boot -o $(BIN)bootloader.iso -V MarzellOS -b mbr_loader.img $(BIN)isocontents/
 
 bootloader.o:
-	nasm -f elf32 -g3 -F dwarf $(SRC)bootloader.asm -o $(BIN)bootloader.o
-	nasm -f elf32 -g3 -F dwarf $(SRC)mbr_loader.asm -o $(BIN)mbr_loader.o
+	nasm -f elf32 -g3 -F dwarf $(BOOTLOADER_SRC)bootloader.asm -o $(BIN)bootloader.o
+	nasm -f elf32 -g3 -F dwarf $(BOOTLOADER_SRC)mbr_loader.asm -o $(BIN)mbr_loader.o
 
 cd_loader.o:
-	nasm -f elf32 -g3 -F dwarf $(SRC)cd_loader.asm -o $(BIN)cd_loader.o
+	nasm -f elf32 -g3 -F dwarf $(BOOTLAODER_SRC)cd_loader.asm -o $(BIN)cd_loader.o
 
 bootloader.elf: bootloader.o
 	$(LD) -Ttext=0x7c00 -melf_i386 $(BIN)bootloader.o -o $(BIN)bootloader.elf
-	$(LD) -T $(SRC)mbr_loader.ld -melf_i386 $(BIN)mbr_loader.o -o $(BIN)mbr_loader.elf
+	$(LD) -T $(BOOTLOADER_SRC)mbr_loader.ld -melf_i386 $(BIN)mbr_loader.o -o $(BIN)mbr_loader.elf
 
 cd_loader.elf: cd_loader.o
 	$(LD) -Ttext=0x7c00 -melf_i386 $(BIN)cd_loader.o -o $(BIN)cd_loader.elf
