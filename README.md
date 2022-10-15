@@ -92,6 +92,7 @@ and be able to boot itself
  
 ##### Memory Detection
 ###### Low Memory
+- use int 0x12 (https://wiki.osdev.org/Detecting_Memory_(x86)#Detecting_Low_Memory)
 
 ##### Extended Bios Data Area (EBDA)
 1. [(ebda)](https://uefi.org/sites/default/files/resources/ACPI_Spec_6_4_Jan22.pdf#subsubsection.5.2.5.1)
@@ -135,3 +136,7 @@ xor reg, reg  is the best way to 0 a register.
 On 64 bit machines do xor r32, r32 as it saves a byte and will clear the upper 32 bit.
 
 Detecting Memory relies heavily on standardized bios. For older systems it can be super tricky. (https://wiki.osdev.org/Detecting_Memory_(x86))
+
+## Trivia
+[The Gang of Nine](https://en.wikipedia.org/wiki/Extended_Industry_Standard_Architecture#The_Gang_of_Nine)   
+http://uruk.org/   (GRUB inventor and high memory detection tutorial)
