@@ -6,7 +6,7 @@
 ; we want to disable the A20 signal
 ; as the first part of the bootloader
 ; see: https://www.win.tue.nl/~aeb/linux/kbd/A20.html
-main:
+_start:
 cli
 mov ax, 0x0     ; make stack just below the bootloader
                 ; check https://wiki.osdev.org/Memory_Map_(x86)
@@ -71,7 +71,8 @@ detect_low_memory:  ; probably not needed but hey
 clc  ; clear carry flag
 
 xor ax, ax
-int 0x12  ; returns memory size in ax until 0x080000 (ebda start)  TODO: check this
+int 0x12  ; returns number of 1KB (0x400 bytes) memory blocks in ax starting at 0x0 until (ebda start)
+          ; let's assume we have all the lower memory
 
 jc hang  ; shouldn't happen
 
@@ -99,8 +100,8 @@ cmp dx, 0x80   ; check if we use a hard drive  TODO: this is very hacky check fo
                ; maybe take result of ah and if it's zero it's a hdd (but this ist just a theory)
 jl read_floppy_setup  ; jump to read the floppy
 
-;                               ||
-; else we assume a hard drive   |
+;                              ||
+; else we assume a hard drive  ||
 ;                              \/
 
 
@@ -120,7 +121,7 @@ get_drive_parameters_extension:
 push dx  ; save drive number
 xor ax, ax  ; buffer for drive parameters
 mov ds, ax
-mov si, drive_parameters_extension_buffer + 0x7c00  ; TODO: hacky, chceck if this can be improved on
+mov si, drive_parameters_extension_buffer
 mov ah, 0x48
 int 0x13
 pop dx
@@ -132,11 +133,11 @@ pop dx
 read_drive:
 xor ax, ax  ; buffer to read to
 mov ds, ax
-mov ax, [drive_parameters_extension_number_of_sectors_total + 0x7c00]  ; we read the number of sectors we have
+mov ax, [drive_parameters_extension_number_of_sectors_total]  ; we read the number of sectors we have
                                                                        ; so read them all
 sub ax, 0x1  ; we don't want to read the first since it's loaded already
-mov [disk_address_packet + 0x2 + 0x7c00], ax  ; move that value to the appropriate memory location
-mov si, disk_address_packet + 0x7c00  ; hacky way to get correct address TODO: check if this can be done better
+mov [disk_address_packet + 0x2], ax  ; move that value to the appropriate memory location
+mov si, disk_address_packet
 mov ah, 0x42
 push dx  ; save drive number
 int 0x13
@@ -175,14 +176,14 @@ jmp hang  ; some error
 detect_high_memory:
 jmp hang  ; TODO: implement
 
-disk_address_packet:
+disk_address_packet:  ; TODO: make this a struct?  (https://forum.nasm.us/index.php?topic=1469.0)
 db 0x10  ; size of packet
 db 0x00  ; reserved (0)
 dw 0x0000 ; number of blocks to transfer
 dd 0x00007e00  ; transfer buffer starting after the bootloader memory
 dq 0x0000000000000001  ; don't read the first block
 
-drive_parameters_extension_buffer:
+drive_parameters_extension_buffer:  ; TODO: make this a struct?
 drive_parameters_extension_buffer_size:
 dw 0x0042  ; size of buffer  (42h for v3.0 (better save than sorry)) (not sure if needed to specify TODO: check without)
 drive_parameters_extension_information_flags:
