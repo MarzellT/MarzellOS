@@ -18,8 +18,9 @@ Only then we enter protected mode and setup runtime environment.
 
 ## Compile
 To compile simply use `make`.
-This creates a binary file which can the be used with QEMU using `-fda`.   
-To create an iso use `make bootloader.iso`. This creats an iso file to
+This creates a binary file which can the be used with QEMU using `-fda` for floppy or
+`-hda` for a hard drive.   
+To create an iso use `make bootloader.iso`. This creates an iso file to
 be used with QEMU using `-cdrom`.
 
 ## QEMU
@@ -31,7 +32,7 @@ qemu-system-i386 -cdrom bin/bootloader.iso -s -S & gdb bin/mbr_loader.elf \
 -ex 'set tdesc filename src/tools/qemu/target.xml' \
 -ex 'b *0x7c00'
 ```
-or
+or USB controller emulator (xhci)
 ```shell
 emu-system-i386 -cdrom bin/cd_loader.iso -s -S -device qemu-xhci & gdb bin/cd_loader.elf \
 -ex 'target remote localhost:1234' \
@@ -56,6 +57,8 @@ emu-system-i386 -cdrom bin/cd_loader.iso -s -S -device qemu-xhci & gdb bin/cd_lo
 ---
 
 ### CD USB MBR loader  (!forget this for now!)
+#### Idea
+Make the CD loader read a USB and write the contents to the hard drive for testing.
 #### We will later have to test if this actually needed on the real hardware
 - make a cd to load HDD MBR formated USB sticks this way the bootloader
 can be compatible with any pc that can boot from floppy drives but not
@@ -111,9 +114,12 @@ https://wiki.osdev.org/SMBIOS
 2. Parse the table
  
 #### General TODOs
+- Memory detection
+    - lower memory
 - debug int 13, ah=42
 - linker script (not required yet)
 - make check for extensions a function to be called (maybe)
+- check elf dynamic section and relocation (http://stffrdhrn.github.io/hardware/embedded/openrisc/2019/11/29/relocs.html)
 
 ---
 
@@ -132,11 +138,17 @@ Debugging 16 Bit real mode with gdb: <https://stackoverflow.com/questions/329558
 
 Hard drive emulated cdrom boot can't use `int 0x13` extensions.
 
-xor reg, reg  is the best way to 0 a register.
-On 64 bit machines do xor r32, r32 as it saves a byte and will clear the upper 32 bit.
 
-Detecting Memory relies heavily on standardized bios. For older systems it can be super tricky. (https://wiki.osdev.org/Detecting_Memory_(x86))
+[Enhanced Disk Drive services (EDD)](https://lwn.net/Articles/12544/)
 
 ## Trivia
 [The Gang of Nine](https://en.wikipedia.org/wiki/Extended_Industry_Standard_Architecture#The_Gang_of_Nine)   
-http://uruk.org/   (GRUB inventor and high memory detection tutorial)
+
+http://uruk.org/   (GRUB inventor and high memory detection tutorial)   
+Detecting Memory relies heavily on standardized bios. For older systems it can be super tricky. (https://wiki.osdev.org/Detecting_Memory_(x86))   
+
+[int 12h ax=4350h/bx=4920h CPI-standard virus - Friend Check](http://www.ctyme.com/intr/rb-0603.htm)   
+
+multiple ways to zero a register  
+`xor reg, reg`  is the best way to 0 a register.   
+On 64 bit machines do `xor r32, r32` as it saves a byte and will clear the upper 32 bit.
