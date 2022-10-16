@@ -59,7 +59,7 @@ load_partition:  ; we have a valid partition we need to load it now
 pop dx
 push dx
 mov ah, 0x41
-mov bx, 0x55aa  ; can't remember why this is here
+mov bx, 0x55aa  ; required for extensions installations check
 int 0x13
 pop dx   ; restore the boot drive number
 push dx  ; we cant do mov dx, [sp] in real mode
