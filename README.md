@@ -40,6 +40,16 @@ emu-system-i386 -cdrom bin/cd_loader.iso -s -S -device qemu-xhci & gdb bin/cd_lo
 -ex 'set tdesc filename src/tools/qemu/target.xml' \
 -ex 'b *0x7c00'
 ```
+or directly into TUI
+```shell
+qemu-system-i386 -hda bin/bootloader.img -s -S & gdbtui ./bin/bootloader.elf  \
+-ex 'target remote localhost:1234' \
+-ex 'set architecture i8086' \
+-ex 'set tdesc filename src/tools/qemu/target.xml' \
+-ex 'b *0x7c00' \
+-ex 'layout src' \
+-ex 'layout regs'
+```
 [\(Other possible QEMU parameters)](https://manned.org/qemu-system-x86_64/129d1fa3)    
 
 ## Current Development Status
@@ -47,19 +57,17 @@ emu-system-i386 -cdrom bin/cd_loader.iso -s -S -device qemu-xhci & gdb bin/cd_lo
 - `mbr_load.asm` loads `bootloader.asm` into memory. It relocates itself to 0x500.
 - `cd_loader.asm` is meant to allow devices that can't boot from USB to boot from CD and boot a USB.
 
-## Todo
-### Bootstrap
-#### [Check int 15h AX=E820h](http://www.uruk.org/orig-grub/mem64mb.html) to do memory detection
-#### Boot loading
+## Bootstrap
+### Boot loading
 - if booted from hard drive load kernel stuff
 - if booted from cd / usb / whatever show installer
 
 ---
 
-### CD USB MBR loader  (!forget this for now!)
-#### Idea
+## CD USB MBR loader  (!forget this for now!)
+### Idea
 Make the CD loader read a USB and write the contents to the hard drive for testing.
-#### We will later have to test if this actually needed on the real hardware
+### We will later have to test if this actually needed on the real hardware
 - make a cd to load HDD MBR formated USB sticks this way the bootloader
 can be compatible with any pc that can boot from floppy drives but not
 USB sticks
@@ -67,7 +75,7 @@ USB sticks
 
 ---
  
-### MBR loader
+## MBR loader
 - create a special mbr loader that will be used to load the actual
 bootloader into the memory so we don't need to worry about the size
 and we can do all the required stuff
@@ -78,7 +86,7 @@ so that we can chs address it *- what did I mean by this ?*
 
 ---
 
-### Bootloader
+## Bootloader
 This one should be saved onto the hard disk together with the mbr loader
 and be able to boot itself
 
@@ -114,9 +122,9 @@ https://wiki.osdev.org/SMBIOS
 2. Parse the table
  
 #### General TODOs
-- Memory detection
-    - lower memory
-- debug int 13, ah=42
+- Memory detection   
+ [Check int 15h AX=E820h](http://www.uruk.org/orig-grub/mem64mb.html) to do memory detection
+   - upper memory detection
 - linker script (not required yet)
 - make check for extensions a function to be called (maybe)
 - check elf dynamic section and relocation (http://stffrdhrn.github.io/hardware/embedded/openrisc/2019/11/29/relocs.html)
