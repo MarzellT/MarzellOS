@@ -40,7 +40,7 @@ jmp (0x500+check_partitions-0x7c00)  ; jump to check_partitions after relocate
 check_partitions:
 ; now we will load the first sector of the first active partition to 0x7c00
 mov di, 0x01be  ; offset to the first entry
-mov cx, -0x4
+mov cx, -0x4    ; check 4 partitions
 check_partitions_loop:
 mov al, [es:di]
 cmp al, 0x80  ; check the status bit of the partition entry

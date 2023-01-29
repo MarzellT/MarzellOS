@@ -17,7 +17,7 @@ test_a20:
 sub ax, ax  ; make ax = 0
 mov es, ax  ; extra segment register
 
-not ax      ; make ax = ffff
+not ax      ; make ax = 0xffff
 mov ds, ax  ; data segment register
 
 mov di, 0x0500  ; addresses to look at
@@ -142,7 +142,7 @@ mov ah, 0x42
 push dx  ; save drive number
 int 0x13
 pop dx  ; restore drive number
-jnc detect_high_memory  ; carry flag is not set if no error
+jnc detect_high_memory_setup  ; carry flag is not set if no error
 jc hang  ; some error
 
 
@@ -163,18 +163,40 @@ mov cl, 0x01        ; start from sector 1
 push dx  ; save the drive number
 int 0x13
 pop dx   ; restore the drive number
-dec bp       ; decrease max retry counter
+dec bp   ; decrease max retry counter
 or bp, bp  ; bp==0
-je detect_high_memory
-or ah, ah    ; why these
-je detect_high_memory  ; two here?
+je detect_high_memory_setup
+or ah, ah                    ; why these
+je detect_high_memory_setup  ; two here?
 jmp read_floppy_main
 
 hang:
 jmp hang  ; some error
 
+detect_high_memory_setup:
+; setup
+%define ARDT_BUFFER_SIZE 20
+mov ax, 0x50               ; set up the extra segment
+mov es, ax                 ; so that the first address packet starts at [50:00]
+xor ebx, ebx               ; continuation value -> must be zero for the first call
+mov edx, 'PAMS'            ; SMAP but little endian the bios uses dx to verify that system map is requested
+xor di, di                 ; start of conventional memory -> start of the address range descriptor table (ARDT)
+mov ecx, ARDT_BUFFER_SIZE  ; 20 bytes buffer size
+
 detect_high_memory:
-jmp hang  ; TODO: implement
+mov eax, 0xe820            ; int 15h function code to query the system address map
+int 15h
+jc hang  ; some exception
+; repeat until bx is zero again
+cmp bx, 0
+je detect_high_memory_done
+; not zero
+add di, ARDT_BUFFER_SIZE  ; move the ARDT pointer to the next place
+jmp detect_high_memory    ; repeat
+
+detect_high_memory_done:
+jc hang  ; if carry is set something went wrong
+
 
 disk_address_packet:  ; TODO: make this a struct?  (https://forum.nasm.us/index.php?topic=1469.0)
 db 0x10  ; size of packet

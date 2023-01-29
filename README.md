@@ -94,8 +94,8 @@ and be able to boot itself
 - load yourself into memory
   - use check for extensions (hdd read bios interrupt)
   - check if read was successful
-- enable protected mode
 - detect memory and hardware
+- enable protected mode
 - prepare the runtime environment
   look into <https://wiki.osdev.org/Rolling_Your_Own_Bootloader>
 
@@ -104,6 +104,9 @@ and be able to boot itself
 ##### Memory Detection
 ###### Low Memory
 - use int 0x12 (https://wiki.osdev.org/Detecting_Memory_(x86)#Detecting_Low_Memory)
+###### High Memory
+- use int 0x15 ax=E820
+- store results at 0x500
 
 ##### Extended Bios Data Area (EBDA)
 1. [(ebda)](https://uefi.org/sites/default/files/resources/ACPI_Spec_6_4_Jan22.pdf#subsubsection.5.2.5.1)
@@ -122,9 +125,7 @@ https://wiki.osdev.org/SMBIOS
 2. Parse the table
  
 #### General TODOs
-- Memory detection   
- [Check int 15h AX=E820h](http://www.uruk.org/orig-grub/mem64mb.html) to do memory detection
-   - upper memory detection
+- detect hardware
 - linker script (not required yet)
 - make check for extensions a function to be called (maybe)
 - check elf dynamic section and relocation (http://stffrdhrn.github.io/hardware/embedded/openrisc/2019/11/29/relocs.html)
@@ -146,6 +147,9 @@ Debugging 16 Bit real mode with gdb: <https://stackoverflow.com/questions/329558
 
 Hard drive emulated cdrom boot can't use `int 0x13` extensions.
 
+"All of the 32-bit registers (EAX, ...) are still usable, by simply adding the "Operand Size Override Prefix" (0x66) 
+to the beginning of any instruction. Your assembler is likely to do this for you, if you simply try to use a 32-bit 
+register." https://wiki.osdev.org/Real_Mode#Common_Misconception
 
 [Enhanced Disk Drive services (EDD)](https://lwn.net/Articles/12544/)
 

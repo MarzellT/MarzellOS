@@ -36,7 +36,7 @@ hd_bootloader.iso: bootloader.img
 	#	dd if=/dev/zero of=$(BIN)diskimage.dd bs=1048576 count=$(PARTITION_SIZE)
 	#	fdisk $(BIN)diskimage.dd < $(SRC)create_mbr_fdisk.txt
 	#	losetup -o 1 --sizelimit 1048576 -f $(BIN)diskimage.dd
-	#	$(eval DEVNAME := $(shell losetup -j $(BIN)diskimage.dd | python3 $(SRC)get_losetup_loop_dev.py))
+	#	$(eval DEVNAME := $(shell losetup -j $(BIN)diskimage.dd | python3 $(SRC)/tools/get_losetup_loop_dev.py))
 	#	mkfs.vfat -F 12 -n "MarzellOS" $(DEVNAME)
 	#	losetup -d $(DEVNAME)
 	rm -rf $(BIN)isocontents
