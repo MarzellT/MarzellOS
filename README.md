@@ -129,6 +129,7 @@ https://wiki.osdev.org/SMBIOS
 - linker script (not required yet)
 - make check for extensions a function to be called (maybe)
 - check elf dynamic section and relocation (http://stffrdhrn.github.io/hardware/embedded/openrisc/2019/11/29/relocs.html)
+- check if CMAKE can be used for building instead of the manual Makefile
 
 ---
 
@@ -147,11 +148,15 @@ Debugging 16 Bit real mode with gdb: <https://stackoverflow.com/questions/329558
 
 Hard drive emulated cdrom boot can't use `int 0x13` extensions.
 
-"All of the 32-bit registers (EAX, ...) are still usable, by simply adding the "Operand Size Override Prefix" (0x66) 
+"All the 32-bit registers (EAX, ...) are still usable, by simply adding the "Operand Size Override Prefix" (0x66) 
 to the beginning of any instruction. Your assembler is likely to do this for you, if you simply try to use a 32-bit 
 register." https://wiki.osdev.org/Real_Mode#Common_Misconception
 
-[Enhanced Disk Drive services (EDD)](https://lwn.net/Articles/12544/)
+[Enhanced Disk Drive services (EDD)](https://lwn.net/Articles/12544/)   
+   
+When writing a custom linker script the linker will omit debug information if you put the whole file name into the
+sections.  
+-> Be sure to include the specific sections you want to link against!
 
 ## Trivia
 [The Gang of Nine](https://en.wikipedia.org/wiki/Extended_Industry_Standard_Architecture#The_Gang_of_Nine)   

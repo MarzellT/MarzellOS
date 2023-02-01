@@ -8,10 +8,13 @@ CROSS-COMPILE-TARGET:=x86_64-elf
 LD = build-tools/bin/$(CROSS-COMPILE-TARGET)-ld
 CC = build-tools/bin/$(CROSS-COMPILE-TARGET)-gcc
 CXX = build-tools/bin/$(CROSS-COMPILE-TARGET)-g++
+NASM_FORMAT = -f elf32 -g3 -F dwarf
+LD_OPTIONS = -melf_i386 -L $(BIN)
+#elf64
+#elf_x86_64
 
 
-
-all: bootloader.bin hd_bootloader.iso
+all: hd_bootloader.iso
 cd_loader:
 	make cd_loader.bin
 	make floppy_cd_loader.iso
@@ -45,18 +48,19 @@ hd_bootloader.iso: bootloader.img
 	mkisofs -hard-disk-boot -o $(BIN)bootloader.iso -V MarzellOS -b mbr_loader.img $(BIN)isocontents/
 
 bootloader.o:
-	nasm -f elf32 -g3 -F dwarf $(BOOTLOADER_SRC)bootloader.asm -o $(BIN)bootloader.o
-	nasm -f elf32 -g3 -F dwarf $(BOOTLOADER_SRC)mbr_loader.asm -o $(BIN)mbr_loader.o
+	nasm $(NASM_FORMAT) $(BOOTLOADER_SRC)bootloader.asm -o $(BIN)bootloader.o
+	nasm $(NASM_FORMAT) $(BOOTLOADER_SRC)bios_utils.asm -o $(BIN)bios_utils.o
+	nasm $(NASM_FORMAT) $(BOOTLOADER_SRC)mbr_loader.asm -o $(BIN)mbr_loader.o
 
 cd_loader.o:
-	nasm -f elf32 -g3 -F dwarf $(BOOTLAODER_SRC)cd_loader.asm -o $(BIN)cd_loader.o
+	nasm $(NASM_FORMAT) $(BOOTLAODER_SRC)cd_loader.asm -o $(BIN)cd_loader.o
 
 bootloader.elf: bootloader.o
-	$(LD) -Ttext=0x7c00 -melf_i386 $(BIN)bootloader.o -o $(BIN)bootloader.elf
-	$(LD) -T $(BOOTLOADER_SRC)mbr_loader.ld -melf_i386 $(BIN)mbr_loader.o -o $(BIN)mbr_loader.elf
+	$(LD) -T $(BOOTLOADER_SRC)bootloader.ld $(LD_OPTIONS) -o $(BIN)bootloader.elf
+	$(LD) -T $(BOOTLOADER_SRC)mbr_loader.ld $(LD_OPTIONS) $(BIN)mbr_loader.o -o $(BIN)mbr_loader.elf
 
 cd_loader.elf: cd_loader.o
-	$(LD) -Ttext=0x7c00 -melf_i386 $(BIN)cd_loader.o -o $(BIN)cd_loader.elf
+	$(LD) -Ttext=0x7c00 $(LD_OPTIONS) $(BIN)cd_loader.o -o $(BIN)cd_loader.elf
 
 bootloader.img: bootloader.elf
 	objcopy -O binary $(BIN)bootloader.elf $(BIN)bootloader.img

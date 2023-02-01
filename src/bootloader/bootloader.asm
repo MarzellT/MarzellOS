@@ -1,12 +1,16 @@
 ; bootloader.asm
 ; containing an MBR partition table
 
+; declare external symbols
+extern clear_screen
+
 [BITS 16]
 
+section .text
+_start:
 ; we want to disable the A20 signal
 ; as the first part of the bootloader
 ; see: https://www.win.tue.nl/~aeb/linux/kbd/A20.html
-_start:
 cli
 mov ax, 0x0     ; make stack just below the bootloader
                 ; check https://wiki.osdev.org/Memory_Map_(x86)
@@ -195,7 +199,8 @@ add di, ARDT_BUFFER_SIZE  ; move the ARDT pointer to the next place
 jmp detect_high_memory    ; repeat
 
 detect_high_memory_done:
-jc hang  ; if carry is set something went wrong
+call clear_screen
+jmp hang;
 
 
 disk_address_packet:  ; TODO: make this a struct?  (https://forum.nasm.us/index.php?topic=1469.0)
