@@ -6,12 +6,11 @@ PARTITION_SIZE = 1  # 1 MB
 # Compiler Options
 CROSS-COMPILE-TARGET:=x86_64-elf
 LD = build-tools/bin/$(CROSS-COMPILE-TARGET)-ld
-CC = build-tools/bin/$(CROSS-COMPILE-TARGET)-gcc
+CC = gcc
 CXX = build-tools/bin/$(CROSS-COMPILE-TARGET)-g++
-NASM_FORMAT = -f elf32 -g3 -F dwarf
+NASM_OPTIONS = -f elf32 -g3 -F dwarf
 LD_OPTIONS = -melf_i386 -L $(BIN)
-#elf64
-#elf_x86_64
+CC_OPTIONS = -gdwarf -m16 -c -ffreestanding -nostartfiles -nostdlib
 
 
 all: hd_bootloader.iso
@@ -47,28 +46,29 @@ hd_bootloader.iso: bootloader.img
 	cp $(BIN)*.img $(BIN)isocontents
 	mkisofs -hard-disk-boot -o $(BIN)bootloader.iso -V MarzellOS -b mbr_loader.img $(BIN)isocontents/
 
-bootloader.o:
-	nasm $(NASM_FORMAT) $(BOOTLOADER_SRC)bootloader.asm -o $(BIN)bootloader.o
-	nasm $(NASM_FORMAT) $(BOOTLOADER_SRC)bios_utils.asm -o $(BIN)bios_utils.o
-	nasm $(NASM_FORMAT) $(BOOTLOADER_SRC)mbr_loader.asm -o $(BIN)mbr_loader.o
-
-cd_loader.o:
-	nasm $(NASM_FORMAT) $(BOOTLAODER_SRC)cd_loader.asm -o $(BIN)cd_loader.o
-
-bootloader.elf: bootloader.o
-	$(LD) -T $(BOOTLOADER_SRC)bootloader.ld $(LD_OPTIONS) -o $(BIN)bootloader.elf
-	$(LD) -T $(BOOTLOADER_SRC)mbr_loader.ld $(LD_OPTIONS) $(BIN)mbr_loader.o -o $(BIN)mbr_loader.elf
-
-cd_loader.elf: cd_loader.o
-	$(LD) -Ttext=0x7c00 $(LD_OPTIONS) $(BIN)cd_loader.o -o $(BIN)cd_loader.elf
-
 bootloader.img: bootloader.elf
 	objcopy -O binary $(BIN)bootloader.elf $(BIN)bootloader.img
 	objcopy -O binary $(BIN)mbr_loader.elf $(BIN)mbr_loader.img
 	cat $(BIN)bootloader.img >> $(BIN)mbr_loader.img
 
+bootloader.elf: bootloader.o
+	$(LD) -T $(BOOTLOADER_SRC)bootloader.ld $(LD_OPTIONS) -o $(BIN)bootloader.elf
+	$(LD) -T $(BOOTLOADER_SRC)mbr_loader.ld $(LD_OPTIONS) $(BIN)mbr_loader.o -o $(BIN)mbr_loader.elf
+
+bootloader.o:
+	nasm $(NASM_OPTIONS) $(BOOTLOADER_SRC)bootloader.asm -o $(BIN)bootloader.o
+	nasm $(NASM_OPTIONS) $(BOOTLOADER_SRC)bios_utils.asm -o $(BIN)bios_utils.o
+	$(CC) $(CC_OPTIONS) $(BOOTLOADER_SRC)utils.c -o $(BIN)utils.o
+	nasm $(NASM_OPTIONS) $(BOOTLOADER_SRC)mbr_loader.asm -o $(BIN)mbr_loader.o
+
 cd_loader.img: cd_loader.elf
 	objcopy -O binary $(BIN)cd_loader.elf $(BIN)cd_loader.img
+
+cd_loader.elf: cd_loader.o
+	$(LD) -Ttext=0x7c00 $(LD_OPTIONS) $(BIN)cd_loader.o -o $(BIN)cd_loader.elf
+
+cd_loader.o:
+	nasm $(NASM_OPTIONS) $(BOOTLAODER_SRC)cd_loader.asm -o $(BIN)cd_loader.o
 
 clean:
 	rm -rf $(BIN)*

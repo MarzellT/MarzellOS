@@ -2,21 +2,26 @@
 ; containing an MBR partition table
 
 ; declare external symbols
+extern set_text_mode
 extern clear_screen
+extern write_string
+;extern int_to_str
 
 [BITS 16]
 
 section .text
 _start:
-; we want to disable the A20 signal
-; as the first part of the bootloader
-; see: https://www.win.tue.nl/~aeb/linux/kbd/A20.html
 cli
+
+setup_stack:
 mov ax, 0x0     ; make stack just below the bootloader
                 ; check https://wiki.osdev.org/Memory_Map_(x86)
 mov ss, ax      ; stack segment register
 mov sp, 0x7c00  ; stack pointer
 
+; we want to disable the A20 signal
+; as the first part of the bootloader
+; see: https://www.win.tue.nl/~aeb/linux/kbd/A20.html
 test_a20:
 sub ax, ax  ; make ax = 0
 mov es, ax  ; extra segment register
@@ -75,8 +80,8 @@ detect_low_memory:  ; probably not needed but hey
 clc  ; clear carry flag
 
 xor ax, ax
-int 0x12  ; returns number of 1KB (0x400 bytes) memory blocks in ax starting at 0x0 until (ebda start)
-          ; let's assume we have all the lower memory
+int 12h  ; returns number of 1KB (0x400 bytes) memory blocks in ax starting at 0x0 until (ebda start)
+         ; let's assume we have all the lower memory
 
 jc hang  ; shouldn't happen
 
@@ -92,8 +97,8 @@ push dx  ; save drive number to stack
 sub ax, ax
 mov es, ax
 mov di, ax
-mov ah, 0x08   ; for int 13 to get drive parameters
-int 0x13       ; call the bios function
+mov ah, 0x08  ; for int 13h to get drive parameters
+int 13h       ; call the bios function
 ; check parameters: http://www.ctyme.com/intr/rb-0621.htm#Table242
 cmp ah, 0x00   ; is zero on success (currently not used)
 mov [test_a20], cx ; save parameters into memory
@@ -109,13 +114,13 @@ jl read_floppy_setup  ; jump to read the floppy
 ;                              \/
 
 
-; check for int 13 extensions (only needed for hard drives)
+; check for int 13h extensions (only needed for hard drives)
 ; carry will be set if not present
 check_int_13_extensions:
 mov ah, 0x41
 push dx  ; save drive number
 mov bx, 0x55aa
-int 0x13
+int 13h
 pop dx  ; restore drive number
 jc read_floppy  ; extensions not installed
 
@@ -127,7 +132,7 @@ xor ax, ax  ; buffer for drive parameters
 mov ds, ax
 mov si, drive_parameters_extension_buffer
 mov ah, 0x48
-int 0x13
+int 13h
 pop dx
 
 
@@ -144,7 +149,7 @@ mov [disk_address_packet + 0x2], ax  ; move that value to the appropriate memory
 mov si, disk_address_packet
 mov ah, 0x42
 push dx  ; save drive number
-int 0x13
+int 13h
 pop dx  ; restore drive number
 jnc detect_high_memory_setup  ; carry flag is not set if no error
 jc hang  ; some error
@@ -165,7 +170,7 @@ mov ah, 0x02
 mov al, cl          ; read max sector count
 mov cl, 0x01        ; start from sector 1
 push dx  ; save the drive number
-int 0x13
+int 13h
 pop dx   ; restore the drive number
 dec bp   ; decrease max retry counter
 or bp, bp  ; bp==0
@@ -199,7 +204,13 @@ add di, ARDT_BUFFER_SIZE  ; move the ARDT pointer to the next place
 jmp detect_high_memory    ; repeat
 
 detect_high_memory_done:
+call set_text_mode  ; set the text mode appropriately
 call clear_screen
+mov bx, ds
+push ds
+mov bx, hello_world
+push bx
+call write_string
 jmp hang;
 
 
@@ -225,10 +236,13 @@ drive_parameters_extension_number_of_sectors_total:
 dq 0x0  ; total number of sectors
 drive_parameters_extension_bytes_per_sector:
 dw 0x0  ; bytes per sector
-times 28 db 0x0 ; buffer for the rest
+times 48 db 0x0 ; buffer for the rest  ; TODO: check how big the buffer needs to be to just have enough space
+
+hello_world:
+db "Hello World!", 0
 
 ; add the boot signature at the end
-times 510-($-$$) db 0
+times 510-($-$$) db 0xaf
 db 0x55
 db 0xaa
 

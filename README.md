@@ -5,6 +5,7 @@
 ---
 
 ## Info
+### General
 Right now the 'Bootloader' only tries to enable A20.
 On the (emulated) hard disk we want to do something different.
 When compiling with `make` we create an iso image emulating
@@ -13,6 +14,13 @@ We want to create an MBR on the hard disk and do MBR bootstrap:
 <https://wiki.osdev.org/MBR_(x86)>
 Then the bootloader needs to load the kernel image into the memory.
 Only then we enter protected mode and setup runtime environment.
+
+### Calling Convention
+#### 16/32 bit modes
+##### [cdecl](https://en.wikipedia.org/wiki/X86_calling_conventions#cdecl)
+- arguments passed on stack
+- integer values and memory addresses are returned in **EAX**
+- caller-saved registers are: **EAX**, **ECX**, **EDX**, all others callee saved
 
 ---
 

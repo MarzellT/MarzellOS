@@ -1,25 +1,70 @@
 ; bios_utils.asm
 ; Collection of functions that interact with the bios in real mode.
 
+global set_text_mode
 global clear_screen
+global write_string
+global int_to_str
 
 [BITS 16]
 
 section .text
 
+set_text_mode:
+; set text mode
+; 80x25 text 9x16 box 720x400 res 16 colors 8 pages B800 ? VGA
+mov al, 0x03  ; text mode
+mov ah, 0x00
+int 10h
+ret
+
+
 clear_screen:
-mov ax, 0x0003 ; Set text mode
-int 0x10  ; ah=00, al=03
+push ebx  ; callee saved
 
-mov ax, 0x0600 ; Move cursor to top-left corner
+; Move cursor to top-left corner
+mov ah, 0x06
+mov al, 0x00
 xor bh, bh
-mov cx, 0x0000
-int 0x10
+mov cx, 0x0000  ; pos 0:0
+int 10h
 
+; Overwrite with spaces
 mov ah, 0x09  ; write character
 mov al, ' '   ; space
 mov bl, 0x07 ; White on black
 xor cx, cx
 mov dx, 0x184f ; Number of spaces to write
-int 0x10
+int 10h
+
+pop ebx  ; callee saved
+ret
+
+
+write_string:
+; arguments:
+; pointer to null-terminated string
+; pointer to data segment
+push ebx  ; callee saved
+xor bx, bx
+mov bx, sp
+mov si, [bx+0x06]  ; first argument
+mov di, [bx+0x04]
+mov ds, di
+
+mov ah, 0x09    ; int 10h: write character and attribute at cursor position
+mov bh, 0x00    ; page number = current page
+mov bl, 0x00    ; text mode
+mov cx, 0x0001  ; write character just once
+
+write_string_loop:
+mov al, [ds:si]  ; current char
+cmp al, 0x0   ; check for null termination
+jz write_string_done
+int 10h;
+inc si  ; point to the next char
+jmp write_string_loop
+
+write_string_done:
+pop ebx  ; callee saved
 ret
