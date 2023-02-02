@@ -1,4 +1,5 @@
 *.bin
 *.iso
+.gdb_history
 *.idea
 build-tools/
