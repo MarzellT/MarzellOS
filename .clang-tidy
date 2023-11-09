@@ -1,0 +1,21 @@
+Checks:
+  bugprone-*,
+  cert-*,
+  clang-analyzer-*,
+  concurrency-*,
+  cppcoreguidelines-*,
+  hicpp-*,
+  misc-*,
+  modernize-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  -misc-include-cleaner,
+  -bugprone-easily-swappable-parameters,
+  -cppcoreguidelines-pro-type-union-access
+
+WarningsAsErrors: '*'
+
+#CheckOptions:
+#  - key: some-check.SomeOption
+#    value: 'some value'
