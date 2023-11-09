@@ -48,14 +48,14 @@ write_string:
 push ebx  ; callee saved
 xor bx, bx
 mov bx, sp
+mov di, [bx+0x08]  ; second argument
 mov si, [bx+0x06]  ; first argument
-mov di, [bx+0x04]
 mov ds, di
 
-mov ah, 0x09    ; int 10h: write character and attribute at cursor position
+; interrupt parameters
+mov ah, 0eh     ; int 10h: teletype output
 mov bh, 0x00    ; page number = current page
-mov bl, 0x00    ; text mode
-mov cx, 0x0001  ; write character just once
+mov bl, 0x00    ; foreground color
 
 write_string_loop:
 mov al, [ds:si]  ; current char

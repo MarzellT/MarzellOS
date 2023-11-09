@@ -5,7 +5,15 @@
 extern set_text_mode
 extern clear_screen
 extern write_string
-;extern int_to_str
+extern int_to_str
+extern msg_boot
+extern msg_low_memory_detected_begin
+extern msg_low_memory_detected_end
+extern msg_detected_high_memory
+extern msg_start_address
+extern msg_start_length
+extern msg_type
+extern msg_new_line
 
 [BITS 16]
 
@@ -18,6 +26,7 @@ mov ax, 0x0     ; make stack just below the bootloader
                 ; check https://wiki.osdev.org/Memory_Map_(x86)
 mov ss, ax      ; stack segment register
 mov sp, 0x7c00  ; stack pointer
+mov bp, 0x7c00  ; base pointer
 
 ; we want to disable the A20 signal
 ; as the first part of the bootloader
@@ -75,13 +84,12 @@ cmp al, 0x02    ; check if system flag is set
 jne empty_8042  ; not ready yet
 ret
 
-; first make sure what memory we can use
-detect_low_memory:  ; probably not needed but hey
+; first make sure how much low memory we can use
+detect_low_memory:
 clc  ; clear carry flag
-
 xor ax, ax
 int 12h  ; returns number of 1KB (0x400 bytes) memory blocks in ax starting at 0x0 until (ebda start)
-         ; let's assume we have all the lower memory
+mov [detect_low_memory], ax  ; store the result just here
 
 jc hang  ; shouldn't happen
 
@@ -179,18 +187,17 @@ or ah, ah                    ; why these
 je detect_high_memory_setup  ; two here?
 jmp read_floppy_main
 
-hang:
-jmp hang  ; some error
 
 detect_high_memory_setup:
 ; setup
 %define ARDT_BUFFER_SIZE 20
 mov ax, 0x50               ; set up the extra segment
-mov es, ax                 ; so that the first address packet starts at [50:00]
+mov es, ax                 ; so that the first address packet starts at [50:50]
 xor ebx, ebx               ; continuation value -> must be zero for the first call
 mov edx, 'PAMS'            ; SMAP but little endian the bios uses dx to verify that system map is requested
-xor di, di                 ; start of conventional memory -> start of the address range descriptor table (ARDT)
+mov di, ax                 ; start of conventional memory -> start of the address range descriptor table (ARDT)
 mov ecx, ARDT_BUFFER_SIZE  ; 20 bytes buffer size
+xor si, si                 ; count the number of table entries
 
 detect_high_memory:
 mov eax, 0xe820            ; int 15h function code to query the system address map
@@ -201,16 +208,35 @@ cmp bx, 0
 je detect_high_memory_done
 ; not zero
 add di, ARDT_BUFFER_SIZE  ; move the ARDT pointer to the next place
+inc si                    ; increment the counter
 jmp detect_high_memory    ; repeat
 
 detect_high_memory_done:
+mov [es:0x00], si   ; store the number of table entries at absolut address 0x500
 call set_text_mode  ; set the text mode appropriately
 call clear_screen
-mov bx, ds
+
+print_boot_msg:
 push ds
-mov bx, hello_world
+push ds
+mov bx, msg_boot
 push bx
 call write_string
+pop ds
+
+print_memory_map:
+push ds
+mov bx, msg_low_memory_detected_begin
+push bx
+call write_string
+
+; convert low memory to string
+;mov ax, [detect_low_memory]
+;mov bx, detect_low_memory
+;push bx
+;push ax
+;call int_to_str
+
 jmp hang;
 
 
@@ -236,10 +262,12 @@ drive_parameters_extension_number_of_sectors_total:
 dq 0x0  ; total number of sectors
 drive_parameters_extension_bytes_per_sector:
 dw 0x0  ; bytes per sector
-times 48 db 0x0 ; buffer for the rest  ; TODO: check how big the buffer needs to be to just have enough space
+times (42h - (2 + 4 + 4 + 4 + 8 + 2)) db 0x0 ; buffer for the rest
 
-hello_world:
-db "Hello World!", 0
+
+
+hang:
+jmp hang  ; some error
 
 ; add the boot signature at the end
 times 510-($-$$) db 0xaf
