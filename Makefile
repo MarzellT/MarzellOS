@@ -59,6 +59,7 @@ bootloader.o:
 	nasm $(NASM_OPTIONS) $(BOOTLOADER_SRC)bootloader.asm -o $(BIN)bootloader.o
 	nasm $(NASM_OPTIONS) $(BOOTLOADER_SRC)bios_utils.asm -o $(BIN)bios_utils.o
 	$(CC) $(CC_OPTIONS) $(BOOTLOADER_SRC)utils.c -o $(BIN)utils.o
+	$(CC) $(CC_OPTIONS) $(BOOTLOADER_SRC)messages.c -o $(BIN)messages.o
 	nasm $(NASM_OPTIONS) $(BOOTLOADER_SRC)mbr_loader.asm -o $(BIN)mbr_loader.o
 
 cd_loader.img: cd_loader.elf
